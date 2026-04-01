@@ -57,7 +57,7 @@ while next_btn:
             qoute_tags = qout.find_element(By.CLASS_NAME, 'tags').find_elements(By.CSS_SELECTOR, 'a')
             tags_text = [tag.text for tag in qoute_tags]
         except Exception:
-            qoute_text = 'None'
+            qoute_tags = 'None'
 
         qout_list.append({
             'qoute_text': qoute_text,
