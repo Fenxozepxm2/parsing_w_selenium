@@ -1,21 +1,13 @@
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import csv
-import requests
 import json
-import time
-from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
-from urllib.parse import urljoin
-from tqdm import tqdm
-
 
 
 # задачи
@@ -26,10 +18,6 @@ from tqdm import tqdm
 # 4. сохранение в csv 
 # 5. обработку ошибок
 
-
-
-# next_btn = driver.find_element(By.CLASS_NAME, 'next').find_element(By.TAG_NAME, 'a').get_attribute('href')
-#использовал только для личного удобства
 
 def parsing_qoutes(driver: WebDriver):
     qout_list = []
@@ -70,14 +58,6 @@ def go_next_page(driver: WebDriver):
     except:
         return False
 
-
-
-    # try:
-    #     #не клик, потому что ширина высота кнопки равняется 0, кнопка не может быть нажата методом click()
-    #     next_btn = driver.find_element(By.CLASS_NAME, 'next').find_element(By.TAG_NAME, 'a').get_attribute('href')
-    #     driver.get(next_btn)
-    # except Exception:
-    #     break
 
 #запись сразу в два удобных формата
 def saving_data(qout_list):
