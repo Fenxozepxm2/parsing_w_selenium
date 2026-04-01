@@ -27,21 +27,12 @@ from tqdm import tqdm
 # 5. обработку ошибок
 
 
-service = Service(ChromeDriverManager().install())
-driver: WebDriver = webdriver.Chrome(service = service)
-driver.get("https://quotes.toscrape.com/js/")
 
-ua = UserAgent()
-headers = {'User-Agent': ua.random }
-qout_list = []
-
-
-next_btn = driver.find_element(By.CLASS_NAME, 'next').find_element(By.TAG_NAME, 'a').get_attribute('href')
+# next_btn = driver.find_element(By.CLASS_NAME, 'next').find_element(By.TAG_NAME, 'a').get_attribute('href')
 #использовал только для личного удобства
-pbar = tqdm()
 
-while next_btn:
-    pbar.update(1)
+def parsing_qoutes(driver: WebDriver):
+    qout_list = []
     qouts = driver.find_elements(By.CLASS_NAME, 'quote')
     for qout in qouts:
         #парсиг данных
@@ -57,31 +48,67 @@ while next_btn:
             qoute_tags = qout.find_element(By.CLASS_NAME, 'tags').find_elements(By.CSS_SELECTOR, 'a')
             tags_text = [tag.text for tag in qoute_tags]
         except Exception:
-            qoute_tags = 'None'
+             qoute_tags = 'None'
 
         qout_list.append({
-            'qoute_text': qoute_text,
-            'qoute_author': qoute_author,
-            'tags': tags_text
-        })
-    time.sleep(0.5)
+                'qoute_text': qoute_text,
+                'qoute_author': qoute_author,
+                'tags': tags_text
+            })
+        WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'quote')))
+    return qout_list
+
+
+def go_next_page(driver: WebDriver):
     try:
-        #не клик, потому что ширина высота кнопки равняется 0, кнопка не может быть нажата методом click()
-        next_btn = driver.find_element(By.CLASS_NAME, 'next').find_element(By.TAG_NAME, 'a').get_attribute('href')
-        driver.get(next_btn)
-    except Exception:
-        break
+        next_btn = driver.find_element(By.CLASS_NAME, 'next')
+        link = next_btn.find_element(By.TAG_NAME, 'a')
+
+        driver.execute_script('arguments[0].click();', link)
+
+        return True
+    except:
+        return False
+
+
+
+    # try:
+    #     #не клик, потому что ширина высота кнопки равняется 0, кнопка не может быть нажата методом click()
+    #     next_btn = driver.find_element(By.CLASS_NAME, 'next').find_element(By.TAG_NAME, 'a').get_attribute('href')
+    #     driver.get(next_btn)
+    # except Exception:
+    #     break
 
 #запись сразу в два удобных формата
-with open('all_qouts.json', 'w', encoding='utf-8') as file:
-    json.dump(qout_list, file, indent=4, ensure_ascii=False)
+def saving_data(qout_list):
+    with open('all_qouts.json', 'w', encoding='utf-8') as file:
+        json.dump(qout_list, file, indent=4, ensure_ascii=False)
 
-with open('all_qouts.csv', 'w', encoding='utf-8-sig', newline='') as f:
-    writer = csv.writer(f, delimiter=';')
-    writer.writerow(['Text', 'Author', 'Теги'])
-    for q in qout_list:
-        tags_str = ', '.join(q['tags'])
-        writer.writerow([q['qoute_text'], q['qoute_author'], tags_str])
+    with open('all_qouts.csv', 'w', encoding='utf-8-sig', newline='') as f:
+        writer = csv.writer(f, delimiter=';')
+        writer.writerow(['Text', 'Author', 'Теги'])
+        for q in qout_list:
+            tags_str = ', '.join(q['tags'])
+            writer.writerow([q['qoute_text'], q['qoute_author'], tags_str])
 
 #ожидание ввода, что бы драйвер браузера не закрывался сразу
-input()
+def main():
+    service = Service(ChromeDriverManager().install())
+    driver: WebDriver = webdriver.Chrome(service = service)
+    driver.get("https://quotes.toscrape.com/js/")
+    all_qoutes = []
+    ua = UserAgent()
+    headers = {'User-Agent': ua.random }
+
+    while True:
+        qout_list = parsing_qoutes(driver)
+        all_qoutes.extend(qout_list)
+
+        if not go_next_page(driver):
+            break
+    saving_data(all_qoutes)
+
+
+
+if __name__ == '__main__':
+    main()
